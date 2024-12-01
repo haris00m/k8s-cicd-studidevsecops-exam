@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goapp
+  labels:
+    app: goapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: goapp
+  template:
+    metadata:
+      labels:
+        app: goapp
+    spec:
+      imagePullSecrets:
+        - name: docker-registry
+      containers:
+        - name: goapp
+          image: haris00m/goapp:1.1.8 #{"$imagepolicy": "flux-system:goapp-policy"}
+          envFrom:
+            - secretRef:
+                name: goapp-db-secret
+            - configMapRef:
+                name: goapp-config
+          ports:
+            - containerPort: 8000

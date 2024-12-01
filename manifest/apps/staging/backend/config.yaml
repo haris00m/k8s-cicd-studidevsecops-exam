@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: goapp-config
+data:
+  ALLOW_ORIGIN: "http://adfec95fa05ca4a0492659ba105f6457-1375272232.ap-southeast-3.elb.amazonaws.com" # http://reactapp-service.frontend.svc.cluster.local / http://localhost:3000

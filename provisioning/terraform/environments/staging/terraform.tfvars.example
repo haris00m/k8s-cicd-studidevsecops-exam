@@ -1,0 +1,29 @@
+# VPC Configuration
+vpc_name            = "xxx-vpc"
+cidr_block          = "0.0.0.0/0"
+public_subnet_count = 3
+public_subnet_cidrs = ["0.0.1.0/0", "0.0.2.0/0", "0.0.3.0/0"]
+availability_zones  = ["ap-us-1a", "ap-us-1b", "ap-us-1c"]
+
+# Security Group
+sg_name             = "xxxx"
+sg_tags             = "xxxx-sg"
+allowed_cidr_blocks = ["0.0.0.0/0"]
+allowed_ports       = ["22", "80", "443"]
+
+# EC2 Instances
+ami           = "ami-081205ca71b3f3635" # Ubuntu 24.04 x86
+instance_type = "t3.micro"              # Free tier support on region Jakarta
+key_pair_name = "xxxx" # The name of key pair on AWS
+
+# EKS Cluster
+ami_type           = "AL2_x86_64" # Type of EKS Ami
+node_instance_type = "t3.small" # Small instance for EKS nodes
+desired_capacity   = 2 # Number of worker nodes
+max_capacity       = 3
+min_capacity       = 1
+cluster_name       = "xxxx-cluster"
+cluster_version    = "1.31" # Latest version
+eks_tags = {
+  Name = "staging-cluster"
+}

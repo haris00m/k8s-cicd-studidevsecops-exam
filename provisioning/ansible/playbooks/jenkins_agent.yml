@@ -1,0 +1,7 @@
+- name: Setup Jenkins Agent
+  hosts: jenkins-agent-1
+  become: true
+  vars_files:
+    - ../inventory/vars.yml
+  roles:
+    - jenkins-agent

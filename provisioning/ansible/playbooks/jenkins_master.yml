@@ -1,0 +1,7 @@
+- name: Setup Jenkins Master
+  hosts: jenkins-server
+  become: true
+  vars_files:
+    - ../inventory/vars.yml
+  roles:
+    - jenkins-master

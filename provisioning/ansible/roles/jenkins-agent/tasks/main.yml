@@ -1,0 +1,39 @@
+- name: Update package index
+  apt:
+    update_cache: yes
+
+- name: Install Java
+  apt:
+    name: openjdk-17-jre
+    state: present
+
+- name: Install Docker
+  apt:
+    name: docker.io
+    state: present
+
+- name: Add Current user to Docker Group
+  user:
+    name: "{{ ansible_user }}"
+    group: docker
+    append: yes
+
+- name: Generate SSH key pair
+  ansible.builtin.openssh_keypair:
+    path: "{{ jenkins_agent_private_key}}"
+    type: rsa
+    size: 2048
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_group }}"
+    mode: '0600'
+
+- name: Copy the public key to local machine for distribution
+  fetch:
+    src: "{{ jenkins_agent_public_key }}"
+    dest: "{{ jenkins_agent_rsa_output }}"
+    flat: yes
+- name: Copy the public key to local machine for distribution
+  fetch:
+    src: "{{ jenkins_agent_private_key}}"
+    dest: "{{ jenkins_agent_rsa_output }}"
+    flat: yes

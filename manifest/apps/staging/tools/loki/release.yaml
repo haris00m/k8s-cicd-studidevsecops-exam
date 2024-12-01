@@ -1,0 +1,25 @@
+# loki-helmrelease.yaml
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: loki
+spec:
+  interval: 1m
+  timeout: 10m
+  chart:
+    spec:
+      chart: loki-stack
+      version: 2.10.2        # Specify a stable version
+      sourceRef:
+        kind: HelmRepository
+        name: grafana-repo
+  values:
+    grafana:
+      enabled: false        # Grafana is managed separately
+    promtail:
+      enabled: false        # Promtail is managed separately
+    loki:
+      config:
+        table_manager:
+          retention_deletes_enabled: true
+          retention_period: 168h   # 7 days

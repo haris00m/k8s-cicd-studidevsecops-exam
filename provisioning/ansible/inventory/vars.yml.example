@@ -1,0 +1,24 @@
+# Hosts Variable
+jenkins_master_ip: 10.10.10.1 # Public ip on Jenkins Master instance
+jenkins_agent_ip: 10.10.10.2 # Public ip on Jenkins Agent instance
+ansible_user: ubuntu # Default EC2 user
+ansible_group: ubuntu# Default EC2 group
+
+# Jenkins Master Variables
+jenkins_master_user: jenkins
+jenkins_master_group: jenkins
+jenkins_master_ssh_key: / # Path to jenkins master ssh key
+jenkins_master_authorized_key: ~/.ssh/authorized_keys # Locate path on default ssh path
+jenkins_agent_ssh_output: ../tmp/id_rsa.pub # Locate path for file output
+jenkins_password_file: ../tmp/initialAdminPassword # Locate path for file output
+
+# Jenkins Agent Variables
+jenkins_agent_user: jenkins
+jenkins_agent_group: jenkins
+jenkins_agent_private_key: /home/ubuntu/.ssh/id_rsa
+jenkins_agent_public_key: /home/ubuntu/.ssh/id_rsa.pub
+jenkins_agent_rsa_output: ../tmp/jenkins-agent/
+
+# Global Variables
+ssh_key_path: ~/.ssh/xxxx.pem # Key path for .pem file for SSH to AWS Instance
+jenkins_home: /home/jenkins

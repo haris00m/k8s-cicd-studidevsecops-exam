@@ -1,0 +1,10 @@
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: reactapp-policy
+spec:
+  imageRepositoryRef:
+    name: reactapp-repo
+  policy:
+    semver:
+      range: 1.0.x

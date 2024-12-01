@@ -1,0 +1,102 @@
+pipeline {
+    agent {
+            label 'jenkins-agent-1'
+    }
+
+    environment {
+        GITHUB_CREDENTIALS = 'github-credentials'
+        GITHUB_REPOSITORY = 'https://github.com/haris00m/reactapp.git'
+
+        VITE_API_BASE_URL= credentials('goapp-api-base-url')
+        BUN_INSTALL="$HOME/.bun"
+        PATH="$BUN_INSTALL/bin:$PATH"
+
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
+        DOCKER_IMAGE = "haris00m/reactapp"
+        TAG = "1.0.${BUILD_NUMBER}"
+
+        DISCORD_CREDENTIALS = credentials('discord-credentials')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git (
+                    url: "${env.GITHUB_REPOSITORY}",
+                    branch: 'main',
+                    credentialsId: "${env.GITHUB_CREDENTIALS}"
+                )
+            }
+        }
+
+        stage('Prepare Environment') {
+            steps {
+                // Write .env file dynamically
+                sh """
+                echo "VITE_API_BASE_URL=${env.VITE_API_BASE_URL}" > .env
+                cat .env
+                """
+            }
+        }
+
+        stage('Build React application') {
+            steps {
+                sh """
+                    bun install
+                    bun run build
+                """
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                script {
+                    // Build the Docker image
+                    sh """
+                        docker build -t ${DOCKER_IMAGE}:${TAG} -t ${DOCKER_IMAGE}:latest .
+                        docker rmi \$(docker images --filter 'dangling=true' -q) || true
+                    """
+                }
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                script {
+                    // Log in to Docker Hub and push the image
+                    sh """
+                        echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin
+                        docker push ${DOCKER_IMAGE}:${TAG}
+                        docker push ${DOCKER_IMAGE}:latest
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // Remove image after building
+            sh """
+                docker rmi ${DOCKER_IMAGE}:${TAG} || true
+                docker rmi ${DOCKER_IMAGE}:latest || true
+            """
+        }
+        success {
+            discordSend description: "Jenkins Pipeline Deploy Golang Apps",
+            footer: "✅ Build #${env.BUILD_NUMBER} succeeded!",
+            link: env.BUILD_URL,
+            result: currentBuild.currentResult,
+            title: env.JOB_NAME,
+            webhookURL: "$DISCORD_CREDENTIALS"
+        }
+        failure {
+            discordSend description: "Jenkins Pipeline Deploy Golang Apps",
+            footer: "❌ Build #${env.BUILD_NUMBER} failed!",
+            link: env.BUILD_URL,
+            result: currentBuild.currentResult,
+            title: env.JOB_NAME,
+            webhookURL: "$DISCORD_CREDENTIALS"
+        }
+    }
+}

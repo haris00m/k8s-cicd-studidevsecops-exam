@@ -1,0 +1,51 @@
+- name: Update package index
+  apt:
+    update_cache: yes
+
+- name: Install Java
+  apt:
+    name: openjdk-17-jre
+    state: present
+
+- name: Add Jenkins Key
+  apt_key:
+    url: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+    state: present
+
+- name: Add Jenkins repository
+  apt_repository:
+    repo: "deb https://pkg.jenkins.io/debian-stable binary/"
+    state: present
+
+- name: Update Repository
+  shell: apt update
+
+- name: Install Jenkins
+  apt:
+    name: jenkins
+    state: present
+
+- name: Start Jenkins
+  service:
+    name: jenkins
+    state: started
+    enabled: true
+
+- name: Check if Jenkins initial admin password exists
+  stat:
+    path: /var/lib/jenkins/secrets/initialAdminPassword
+  register: admin_password_file
+
+- name: Copy Jenkins initial admin password to local machine
+  fetch:
+    src: /var/lib/jenkins/secrets/initialAdminPassword
+    dest: "{{ jenkins_password_file }}"
+    flat: yes
+  when: admin_password_file.stat.exists
+
+- name: Add Jenkins agent public key to Jenkins master authorized_keys
+  authorized_key:
+    user: "{{ ansible_user }}"
+    state: present
+    key: "{{ lookup('file', jenkins_agent_ssh_output) }}"
+    path: "/home/{{ ansible_user }}/.ssh/authorized_keys"

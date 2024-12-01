@@ -1,0 +1,9 @@
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: goapp-repo
+spec:
+  image: haris00m/goapp
+  interval: 1m
+  secretRef:
+    name: docker-registry

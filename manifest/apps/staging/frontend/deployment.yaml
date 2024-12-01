@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reactapp
+  labels:
+    app: reactapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reactapp
+  template:
+    metadata:
+      labels:
+        app: reactapp
+    spec:
+      imagePullSecrets:
+        - name: docker-registry
+      containers:
+        - name: reactapp
+          image: haris00m/reactapp:1.0.22 #{"$imagepolicy": "flux-system:reactapp-policy"}
+          envFrom:
+            - configMapRef:
+                name: reactapp-config
+          ports:
+            - containerPort: 80

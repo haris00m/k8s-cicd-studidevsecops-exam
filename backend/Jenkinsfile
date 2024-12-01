@@ -1,0 +1,92 @@
+pipeline {
+    agent {
+        label 'jenkins-agent-1'
+    }
+
+    environment {
+        GITHUB_CREDENTIALS = 'github-credentials'
+        GITHUB_REPOSITORY = 'https://github.com/haris00m/goapp.git'
+
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
+        DOCKERHUB_REPO = "haris00m/goapp"
+        TAG = "1.1.${BUILD_NUMBER}"
+
+        DISCORD_CREDENTIALS = credentials('discord-credentials')
+
+        GO_HOME = '/usr/local/go'
+        PATH = "${GO_HOME}/bin:${env.PATH}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git (
+                    url: "${env.GITHUB_REPOSITORY}",
+                    branch: 'main',
+                    credentialsId: "${env.GITHUB_CREDENTIALS}"
+                )
+            }
+        }
+
+        stage('Build Go application') {
+            steps {
+                script {
+                    sh """
+                        go clean -cache
+                        go mod download
+                        go build -o goapp ./cmd/main.go
+                    """
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh """
+                        docker build -t ${DOCKERHUB_REPO}:${TAG} .
+                        docker tag ${DOCKERHUB_REPO}:${TAG} ${DOCKERHUB_REPO}:latest
+                        docker rmi \$(docker images --filter 'dangling=true' -q) || true
+                    """
+                }
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    sh """
+                        echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin
+                        docker push ${DOCKERHUB_REPO}:${TAG}
+                        docker push ${DOCKERHUB_REPO}:latest
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            sh """
+                docker rmi ${DOCKERHUB_REPO}:${TAG} || true
+                docker rmi ${DOCKERHUB_REPO}:latest || true
+            """
+        }
+        success {
+            discordSend description: "Jenkins Pipeline Deploy Golang Apps",
+            footer: "✅ Build #${env.BUILD_NUMBER} succeeded!",
+            link: env.BUILD_URL,
+            result: currentBuild.currentResult,
+            title: env.JOB_NAME,
+            webhookURL: "$DISCORD_CREDENTIALS"
+        }
+        failure {
+            discordSend description: "Jenkins Pipeline Deploy Golang Apps",
+            footer: "❌ Build #${env.BUILD_NUMBER} failed!",
+            link: env.BUILD_URL,
+            result: currentBuild.currentResult,
+            title: env.JOB_NAME,
+            webhookURL: "$DISCORD_CREDENTIALS"
+        }
+    }
+}
