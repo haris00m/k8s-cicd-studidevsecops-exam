@@ -1,4 +1,4 @@
-# CI/CD Pipeline fo Go & React Deployment
+# CI/CD Pipeline for Go & React Deployment
 #### _Final Exam Bootcamp StudiDevOps16_
 ![img.png](diagram.png)
 
